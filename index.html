@@ -15,7 +15,7 @@
       margin-bottom: 10px;
       border: 1px solid #ccc;
     }
-    input, textarea, button {
+    input, textarea, button, select {
       width: 100%;
       max-width: 400px;
       font-size: 1rem;
@@ -34,6 +34,10 @@
   <h2>📷 Barkod skener</h2>
   <video id="video" autoplay muted playsinline></video>
 
+  <label for="cameraSelect">🎥 Odaberi kameru:</label>
+  <select id="cameraSelect"></select>
+  <button onclick="switchCamera()">🔄 Promijeni kameru</button>
+
   <label for="barcode">📦 Barkod:</label>
   <input type="text" id="barcode" readonly>
 
@@ -41,27 +45,55 @@
   <textarea id="note" rows="4"></textarea>
 
   <button onclick="posalji()">📤 Pošalji</button>
+  <button onclick="novoOcitanje()">🔁 Novo očitanje</button>
+
+  <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
   <script>
-    const selectedDeviceId = null;
-    const codeReader = new ZXing.BrowserBarcodeReader();
-    const videoElement = document.getElementById('video');
+    let codeReader = new ZXing.BrowserBarcodeReader();
+    let currentDeviceId = null;
 
-    codeReader
-      .getVideoInputDevices()
-      .then((videoInputDevices) => {
-        const deviceId = selectedDeviceId || videoInputDevices[0].deviceId;
-        return codeReader.decodeFromVideoDevice(deviceId, videoElement, (result, err) => {
-          if (result) {
-            document.getElementById('barcode').value = result.getText();
-            codeReader.reset(); // pauza nakon skeniranja
-          }
-        });
-      })
-      .catch((err) => {
-        alert('Greška pri pokretanju kamere: ' + err);
-        console.error(err);
+    const videoElement = document.getElementById('video');
+    const cameraSelect = document.getElementById('cameraSelect');
+
+    codeReader.getVideoInputDevices().then((devices) => {
+      devices.forEach((device, index) => {
+        const option = document.createElement('option');
+        option.value = device.deviceId;
+        option.text = device.label || `Kamera ${index + 1}`;
+        cameraSelect.appendChild(option);
       });
+      if (devices.length > 0) {
+        currentDeviceId = devices[0].deviceId;
+        startScanner(currentDeviceId);
+      }
+    });
+
+    function startScanner(deviceId) {
+      codeReader.decodeFromVideoDevice(deviceId, videoElement, (result, err) => {
+        if (result) {
+          document.getElementById('barcode').value = result.getText();
+          document.getElementById('beep').play();
+          codeReader.reset();
+        }
+      });
+    }
+
+    function switchCamera() {
+      if (cameraSelect.value) {
+        codeReader.reset();
+        currentDeviceId = cameraSelect.value;
+        startScanner(currentDeviceId);
+      }
+    }
+
+    function novoOcitanje() {
+      document.getElementById('barcode').value = "";
+      codeReader.reset();
+      if (currentDeviceId) {
+        startScanner(currentDeviceId);
+      }
+    }
 
     function posalji() {
       const barcode = document.getElementById('barcode').value;

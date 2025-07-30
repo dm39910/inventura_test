@@ -2,39 +2,25 @@
 <html lang="hr">
 <head>
   <meta charset="UTF-8">
-  <title>Barkod skener + unos napomene</title>
-  <script type="module">
-    import { BrowserMultiFormatReader } from 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.0.10/esm/index.min.js';
-
-    window.addEventListener('load', () => {
-      const codeReader = new BrowserMultiFormatReader();
-      const videoElement = document.getElementById('video');
-
-      codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
-        if (result) {
-          document.getElementById('barcode').value = result.getText();
-          codeReader.reset();
-        }
-      });
-    });
-  </script>
+  <title>Barkod skener + napomena</title>
+  <script src="https://unpkg.com/@zxing/library@latest"></script>
   <style>
     body {
       font-family: sans-serif;
       margin: 20px;
     }
-    #video {
+    video {
       width: 100%;
       max-width: 400px;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       border: 1px solid #ccc;
     }
     input, textarea, button {
-      font-size: 1rem;
-      padding: 10px;
-      margin-top: 10px;
       width: 100%;
       max-width: 400px;
+      font-size: 1rem;
+      margin-top: 10px;
+      padding: 10px;
     }
     button {
       background-color: #4CAF50;
@@ -52,23 +38,42 @@
   <input type="text" id="barcode" readonly>
 
   <label for="note">📝 Napomena:</label>
-  <textarea id="note" rows="4" placeholder="Unesi napomenu..."></textarea>
+  <textarea id="note" rows="4"></textarea>
 
-  <button onclick="posalji()">📤 Pošalji na server</button>
+  <button onclick="posalji()">📤 Pošalji</button>
 
   <script>
-    function posalji() {
-      const barcode = document.getElementById("barcode").value;
-      const note = document.getElementById("note").value;
-      if (!barcode) return alert("Nema skeniranog barkoda!");
+    const selectedDeviceId = null;
+    const codeReader = new ZXing.BrowserBarcodeReader();
+    const videoElement = document.getElementById('video');
 
+    codeReader
+      .getVideoInputDevices()
+      .then((videoInputDevices) => {
+        const deviceId = selectedDeviceId || videoInputDevices[0].deviceId;
+        return codeReader.decodeFromVideoDevice(deviceId, videoElement, (result, err) => {
+          if (result) {
+            document.getElementById('barcode').value = result.getText();
+            codeReader.reset(); // pauza nakon skeniranja
+          }
+        });
+      })
+      .catch((err) => {
+        alert('Greška pri pokretanju kamere: ' + err);
+        console.error(err);
+      });
+
+    function posalji() {
+      const barcode = document.getElementById('barcode').value;
+      const note = document.getElementById('note').value;
+      if (!barcode) return alert("Nema barkoda!");
       fetch("http://localhost:5000/api/unesi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ barcode: barcode, note: note })
+        body: JSON.stringify({ barcode, note })
       })
-      .then(res => res.ok ? alert("Podaci poslani!") : alert("Greška prilikom slanja."))
-      .catch(err => alert("Nema veze sa serverom."));
+      .then(res => res.ok ? alert("Poslano!") : alert("Greška kod slanja"))
+      .catch(() => alert("Nema veze sa serverom."));
     }
   </script>
 </body>

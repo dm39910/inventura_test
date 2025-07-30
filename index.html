@@ -77,7 +77,7 @@
 </head>
 <body>
   <img src="HKZP_logo.jpg" alt="HKZP logo" style="width: 100%; height: auto; margin-bottom: 20px;">
-  <h2 style="font-size: 1.8rem; display: flex; align-items: center; justify-content: center;">📷 Barkod skener</h2>
+  <h2 style="font-size: 1.8rem; display: flex; align-items: center; justify-content: center;">📷 Inventura V0.1</h2>
   <div class="video-container">
     <video id="video" autoplay muted playsinline></video>
     <div class="camera-controls">
@@ -153,14 +153,12 @@
     }
 
     function novoOcitanje() {
-  document.getElementById('barcode').value = "";
-  document.getElementById('note').value = "";
-  codeReader.reset();
-  if (currentDeviceId) {
-    startScanner(currentDeviceId);
-  }
-}
-}
+      document.getElementById('barcode').value = "";
+      document.getElementById('note').value = "";
+      codeReader.reset();
+      if (currentDeviceId) {
+        startScanner(currentDeviceId);
+      }
     }
 
     function posalji() {

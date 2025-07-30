@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <title>Barkod skener + unos napomene</title>
+  <script type="module">
+    import { BrowserMultiFormatReader } from 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.0.10/esm/index.min.js';
+
+    window.addEventListener('load', () => {
+      const codeReader = new BrowserMultiFormatReader();
+      const videoElement = document.getElementById('video');
+
+      codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
+        if (result) {
+          document.getElementById('barcode').value = result.getText();
+          codeReader.reset();
+        }
+      });
+    });
+  </script>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    #video {
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+    }
+    input, textarea, button {
+      font-size: 1rem;
+      padding: 10px;
+      margin-top: 10px;
+      width: 100%;
+      max-width: 400px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>📷 Barkod skener</h2>
+  <video id="video" autoplay muted playsinline></video>
+
+  <label for="barcode">📦 Barkod:</label>
+  <input type="text" id="barcode" readonly>
+
+  <label for="note">📝 Napomena:</label>
+  <textarea id="note" rows="4" placeholder="Unesi napomenu..."></textarea>
+
+  <button onclick="posalji()">📤 Pošalji na server</button>
+
+  <script>
+    function posalji() {
+      const barcode = document.getElementById("barcode").value;
+      const note = document.getElementById("note").value;
+      if (!barcode) return alert("Nema skeniranog barkoda!");
+
+      fetch("http://localhost:5000/api/unesi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ barcode: barcode, note: note })
+      })
+      .then(res => res.ok ? alert("Podaci poslani!") : alert("Greška prilikom slanja."))
+      .catch(err => alert("Nema veze sa serverom."));
+    }
+  </script>
+</body>
+</html>

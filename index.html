@@ -9,11 +9,21 @@
       font-family: sans-serif;
       margin: 20px;
     }
+    .video-container {
+      display: flex;
+      align-items: flex-start;
+    }
     video {
       width: 100%;
       max-width: 400px;
       margin-bottom: 10px;
       border: 1px solid #ccc;
+    }
+    .camera-controls {
+      margin-left: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
     }
     input, textarea, button, select {
       width: 100%;
@@ -32,14 +42,17 @@
 </head>
 <body>
   <h2>📷 Barkod skener</h2>
-  <video id="video" autoplay muted playsinline></video>
+  <div class="video-container">
+    <video id="video" autoplay muted playsinline></video>
+    <div class="camera-controls">
+      <label for="cameraSelect">🎥 Odaberi kameru:</label>
+      <select id="cameraSelect"></select>
+      <button onclick="switchCamera()">🔄 Promijeni kameru</button>
+    </div>
+  </div>
 
-  <label for="cameraSelect">🎥 Odaberi kameru:</label>
-  <select id="cameraSelect"></select>
-  <button onclick="switchCamera()">🔄 Promijeni kameru</button>
-
-  <label for="barcode">📦 Barkod:</label>
-  <input type="text" id="barcode" readonly>
+  <label for="barcode">📦 Barkod ili ručni unos:</label>
+  <input type="text" id="barcode">
 
   <label for="note">📝 Napomena:</label>
   <textarea id="note" rows="4"></textarea>
@@ -57,14 +70,30 @@
     const cameraSelect = document.getElementById('cameraSelect');
 
     codeReader.getVideoInputDevices().then((devices) => {
+      let defaultDevice = null;
+
       devices.forEach((device, index) => {
         const option = document.createElement('option');
         option.value = device.deviceId;
         option.text = device.label || `Kamera ${index + 1}`;
         cameraSelect.appendChild(option);
+
+        const label = (device.label || '').toLowerCase();
+        if (!defaultDevice && label.includes('back')) {
+          defaultDevice = device;
+        }
+        if (label.includes('camera2 0') && label.includes('back')) {
+          defaultDevice = device; // najbolji kandidat
+        }
       });
-      if (devices.length > 0) {
+
+      if (defaultDevice) {
+        currentDeviceId = defaultDevice.deviceId;
+        cameraSelect.value = currentDeviceId;
+        startScanner(currentDeviceId);
+      } else if (devices.length > 0) {
         currentDeviceId = devices[0].deviceId;
+        cameraSelect.value = currentDeviceId;
         startScanner(currentDeviceId);
       }
     });

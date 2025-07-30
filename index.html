@@ -28,7 +28,9 @@
       justify-content: flex-start;
       align-items: flex-start;
     }
-    .camera-controls label {
+    .camera-controls label,
+    label[for="barcode"],
+    label[for="note"] {
       width: 100%;
       margin-bottom: 10px;
       font-size: 1.8rem;
@@ -47,9 +49,13 @@
       display: block;
       margin: 20px auto 0 auto;
     }
+    #note {
+      margin-top: 10px;
+    }
     button.full-width {
       width: 95%;
-      font-size: 1rem;
+      font-size: 1.8rem;
+      height: 3em;
       margin: 20px auto;
       padding: 10px;
       background-color: #4CAF50;

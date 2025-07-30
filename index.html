@@ -11,32 +11,47 @@
     }
     .video-container {
       display: flex;
+      flex-wrap: wrap;
       align-items: flex-start;
     }
     video {
-      width: 100%;
-      max-width: 400px;
+      width: 66%;
+      max-width: 100%;
       margin-bottom: 10px;
       border: 1px solid #ccc;
     }
     .camera-controls {
-      margin-left: 20px;
+      width: 32%;
+      margin-left: 2%;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
     }
     input, textarea, button, select {
-      width: 100%;
-      max-width: 400px;
       font-size: 1rem;
       margin-top: 10px;
       padding: 10px;
     }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
+    #barcode {
+      width: 100%;
+    }
+    #note {
+      width: 100%;
+    }
+    .full-width {
+      width: 100%;
+    }
+    .camera-controls button, .camera-controls select, .camera-controls label {
+      width: 100%;
+    }
+    @media (max-width: 768px) {
+      .video-container {
+        flex-direction: column;
+      }
+      video, .camera-controls {
+        width: 100%;
+        margin-left: 0;
+      }
     }
   </style>
 </head>
@@ -48,6 +63,7 @@
       <label for="cameraSelect">🎥 Odaberi kameru:</label>
       <select id="cameraSelect"></select>
       <button onclick="switchCamera()">🔄 Promijeni kameru</button>
+      <button onclick="novoOcitanje()">🔁 Novo očitanje</button>
     </div>
   </div>
 
@@ -57,8 +73,7 @@
   <label for="note">📝 Napomena:</label>
   <textarea id="note" rows="4"></textarea>
 
-  <button onclick="posalji()">📤 Pošalji</button>
-  <button onclick="novoOcitanje()">🔁 Novo očitanje</button>
+  <button class="full-width" onclick="posalji()">📤 Pošalji</button>
 
   <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 

@@ -52,13 +52,22 @@
       height: 3em;
       font-size: 1.8rem;
     }
-    input[type="text"], textarea {
+    input[type="text"] {
       width: 95%;
       font-size: 2rem;
       font-weight: bold;
       padding: 10px;
       display: block;
       margin: 20px auto 0 auto;
+      height: 4em;
+    }
+    textarea {
+      width: 95%;
+      font-size: 2rem;
+      font-weight: bold;
+      padding: 10px;
+      display: block;
+      margin: 10px auto 0 auto;
     }
     #note {
       margin-top: 10px;
@@ -66,7 +75,7 @@
     button.full-width {
       width: 95%;
       font-size: 3.6rem;
-      height: 3.6em;
+      height: 2.2em;
       margin: 20px auto;
       padding: 10px;
       background-color: #4CAF50;
@@ -87,8 +96,8 @@
   </style>
 </head>
 <body>
-  <img src="HKZP_logo.jpg" alt="HKZP logo" style="width: 100%; height: auto; margin-bottom: 20px;">
-  <h2 style="font-size: 3.6rem; display: flex; align-items: center; justify-content: center;">Inventura V0.1     JPAK IIK</h2>
+  <img src="HKZP_logo.jpg" alt="HKZP logo" style="width: 100%; height: auto; max-height: 60px; display: block; margin: 0 auto 20px auto;">
+  <h2 style="font-size: 7.2rem; display: flex; align-items: center; justify-content: center;">Inventura V0.1     JPAK IIK</h2>
   <div class="video-container">
     <video id="video" autoplay muted playsinline></video>
     <div class="camera-controls">
@@ -130,7 +139,7 @@
           defaultDevice = device;
         }
         if (label.includes('camera2 0') && label.includes('back')) {
-          defaultDevice = device; // najbolji kandidat
+          defaultDevice = device;
         }
       });
 

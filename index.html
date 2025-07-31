@@ -3,15 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Barkod skener + napomena</title>
-  <script src="https://unpkg.com/@zxing/library@latest">window.visualViewport && window.visualViewport.addEventListener('resize', () => {
-  if (window.visualViewport.scale !== 1) {
-    document.body.style.transform = `scale(${1 / window.visualViewport.scale})`;
-    document.body.style.transformOrigin = 'top left';
-  } else {
-    document.body.style.transform = '';
-  }
-});
-</script>
+  <script src="https://unpkg.com/@zxing/library@latest"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -110,6 +102,7 @@
   <script>
     let codeReader = new ZXing.BrowserBarcodeReader();
     let currentDeviceId = null;
+    let buffer = JSON.parse(localStorage.getItem("offlineBuffer") || "[]");
 
     const videoElement = document.getElementById('video');
     const cameraSelect = document.getElementById('cameraSelect');
@@ -128,7 +121,7 @@
           defaultDevice = device;
         }
         if (label.includes('camera2 0') && label.includes('back')) {
-          defaultDevice = device; // najbolji kandidat
+          defaultDevice = device;
         }
       });
 
@@ -174,14 +167,49 @@
       const barcode = document.getElementById('barcode').value;
       const note = document.getElementById('note').value;
       if (!barcode) return alert("Nema barkoda!");
+
+      const podatak = { barcode, note };
+
       fetch("http://localhost:5000/api/unesi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ barcode, note })
+        body: JSON.stringify(podatak)
       })
-      .then(res => res.ok ? alert("Poslano!") : alert("Greška kod slanja"))
-      .catch(() => alert("Nema veze sa serverom."));
+      .then(res => {
+        if (res.ok) {
+          alert("Poslano!");
+        } else {
+          alert("Greška kod slanja, sprema se lokalno.");
+          buffer.push(podatak);
+          localStorage.setItem("offlineBuffer", JSON.stringify(buffer));
+        }
+      })
+      .catch(() => {
+        alert("Nema veze sa serverom, sprema se lokalno.");
+        buffer.push(podatak);
+        localStorage.setItem("offlineBuffer", JSON.stringify(buffer));
+      });
     }
+
+    window.addEventListener("load", () => {
+      const buffer = JSON.parse(localStorage.getItem("offlineBuffer") || "[]");
+      if (buffer.length > 0) {
+        buffer.forEach((podatak, index) => {
+          fetch("http://localhost:5000/api/unesi", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(podatak)
+          })
+          .then(res => {
+            if (res.ok) {
+              buffer.splice(index, 1);
+              localStorage.setItem("offlineBuffer", JSON.stringify(buffer));
+            }
+          })
+          .catch(() => {});
+        });
+      }
+    });
   </script>
 </body>
 </html>

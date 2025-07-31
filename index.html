@@ -3,8 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <title>Barkod skener + napomena</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <script src="https://unpkg.com/@zxing/library@latest"></script>
+  <script src="https://unpkg.com/@zxing/library@latest">window.visualViewport && window.visualViewport.addEventListener('resize', () => {
+  if (window.visualViewport.scale !== 1) {
+    document.body.style.transform = `scale(${1 / window.visualViewport.scale})`;
+    document.body.style.transformOrigin = 'top left';
+  } else {
+    document.body.style.transform = '';
+  }
+});
+</script>
   <style>
     body {
       font-family: sans-serif;
@@ -43,30 +50,21 @@
       height: 3em;
       font-size: 1.8rem;
     }
-    input[type="text"] {
+    input[type="text"], textarea {
       width: 95%;
       font-size: 2rem;
       font-weight: bold;
       padding: 10px;
       display: block;
       margin: 20px auto 0 auto;
-      height: 4em;
-    }
-    textarea {
-      width: 95%;
-      font-size: 2rem;
-      font-weight: bold;
-      padding: 10px;
-      display: block;
-      margin: 10px auto 0 auto;
     }
     #note {
       margin-top: 10px;
     }
     button.full-width {
       width: 95%;
-      font-size: 3.6rem;
-      height: 1.32em;
+      font-size: 1.8rem;
+      height: 3em;
       margin: 20px auto;
       padding: 10px;
       background-color: #4CAF50;
@@ -87,8 +85,8 @@
   </style>
 </head>
 <body>
-  <img src="HKZP_logo.jpg" alt="HKZP logo" style="width: 100%; height: auto; max-height: 60px; display: block; margin: 0 auto 20px auto;">
-  <h2 style="font-size: 7.2rem; display: flex; align-items: center; justify-content: center;">Inventura V0.1     JPAK IIK</h2>
+  <img src="HKZP_logo.jpg" alt="HKZP logo" style="width: 100%; height: auto; margin-bottom: 20px;">
+  <h2 style="font-size: 3.6rem; display: flex; align-items: center; justify-content: center;">Inventura V0.1     JPAK IIK</h2>
   <div class="video-container">
     <video id="video" autoplay muted playsinline></video>
     <div class="camera-controls">
@@ -105,7 +103,7 @@
   <label for="note">📝 Napomena:</label>
   <textarea id="note" rows="4"></textarea>
 
-  <button class="full-width" onclick="posalji()"><span style='color: #FFD700;'>✔️</span> Evidentiraj</button>
+  <button class="full-width" onclick="posalji()" style="font-size: 3.6rem; height: 3.6em; background-color: #4CAF50; color: white; border: none;"><span style='color: #FFD700;'>✔️</span> Evidentiraj</button>
 
   <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
@@ -130,7 +128,7 @@
           defaultDevice = device;
         }
         if (label.includes('camera2 0') && label.includes('back')) {
-          defaultDevice = device;
+          defaultDevice = device; // najbolji kandidat
         }
       });
 
@@ -175,51 +173,14 @@
     function posalji() {
       const barcode = document.getElementById('barcode').value;
       const note = document.getElementById('note').value;
-      const podatak = { barcode, note, timestamp: new Date().toISOString() };
-
       if (!barcode) return alert("Nema barkoda!");
-
-      if (!navigator.onLine) {
-        let spremnik = JSON.parse(localStorage.getItem("buffer") || "[]");
-        spremnik.push(podatak);
-        localStorage.setItem("buffer", JSON.stringify(spremnik));
-        alert("Nema veze – podatak spremljen lokalno.");
-        return;
-      }
-
       fetch("http://localhost:5000/api/unesi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(podatak)
+        body: JSON.stringify({ barcode, note })
       })
-      .then(res => {
-        if (res.ok) {
-          alert("Evidentirano!");
-          posaljiBufferirane();
-        } else {
-          alert("Greška – nije poslano.");
-        }
-      })
-      .catch(() => {
-        alert("Greška veze – pokušaj kasnije.");
-      });
-    }
-
-    function posaljiBufferirane() {
-      if (!navigator.onLine) return;
-
-      let spremnik = JSON.parse(localStorage.getItem("buffer") || "[]");
-      if (spremnik.length === 0) return;
-
-      spremnik.forEach(podatak => {
-        fetch("http://localhost:5000/api/unesi", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(podatak)
-        });
-      });
-
-      localStorage.removeItem("buffer");
+      .then(res => res.ok ? alert("Poslano!") : alert("Greška kod slanja"))
+      .catch(() => alert("Nema veze sa serverom."));
     }
   </script>
 </body>

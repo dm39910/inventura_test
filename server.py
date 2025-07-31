@@ -4,18 +4,18 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-@app.route('/api/unesi', methods=['POST'])
+@app.route("/api/unesi", methods=["POST"])
 def unesi():
-    data = request.get_json()
-    barcode = data.get('barcode')
-    note = data.get('note')
+    data = request.json
     timestamp = datetime.now().isoformat()
-    
-    with open('log.csv', 'a', newline='', encoding='utf-8') as f:
+    with open("inventura.csv", "a", newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow([timestamp, barcode, note])
-    
-    return jsonify({'status': 'OK'}), 200
+        writer.writerow([timestamp, data["barcode"], data.get("note", "")])
+    return jsonify({"status": "zabilježeno"}), 200
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+@app.route("/test", methods=["GET"])
+def test():
+    return jsonify({"status": "OK"})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)

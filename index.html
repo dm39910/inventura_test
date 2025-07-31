@@ -42,7 +42,16 @@
       height: 3em;
       font-size: 1.8rem;
     }
-    input[type="text"], textarea {
+    input[type="text"] {
+      width: 95%;
+      font-size: 2rem;
+      font-weight: bold;
+      padding: 10px;
+      display: block;
+      margin: 20px auto 0 auto;
+      height: 4em;
+    }
+    textarea {
       width: 95%;
       font-size: 2rem;
       font-weight: bold;
@@ -55,8 +64,8 @@
     }
     button.full-width {
       width: 95%;
-      font-size: 1.8rem;
-      height: 3em;
+      font-size: 3.6rem;
+      height: 3.6em;
       margin: 20px auto;
       padding: 10px;
       background-color: #4CAF50;
@@ -95,7 +104,7 @@
   <label for="note">📝 Napomena:</label>
   <textarea id="note" rows="4"></textarea>
 
-  <button class="full-width" onclick="posalji()" style="font-size: 3.6rem; height: 3.6em; background-color: #4CAF50; color: white; border: none;"><span style='color: #FFD700;'>✔️</span> Evidentiraj</button>
+  <button class="full-width" onclick="posalji()"><span style='color: #FFD700;'>✔️</span> Evidentiraj</button>
 
   <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
@@ -170,7 +179,7 @@
 
       const podatak = { barcode, note };
 
-      fetch("http://localhost:5000/api/unesi", {
+      fetch("http://192.168.1.205:5000/api/unesi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(podatak)
@@ -195,7 +204,7 @@
       const buffer = JSON.parse(localStorage.getItem("offlineBuffer") || "[]");
       if (buffer.length > 0) {
         buffer.forEach((podatak, index) => {
-          fetch("http://localhost:5000/api/unesi", {
+          fetch("http://192.168.1.205:5000/api/unesi", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(podatak)

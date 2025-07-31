@@ -3,15 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <title>Barkod skener + napomena</title>
-  <script src="https://unpkg.com/@zxing/library@latest">window.visualViewport && window.visualViewport.addEventListener('resize', () => {
-  if (window.visualViewport.scale !== 1) {
-    document.body.style.transform = `scale(${1 / window.visualViewport.scale})`;
-    document.body.style.transformOrigin = 'top left';
-  } else {
-    document.body.style.transform = '';
-  }
-});
-</script>
+  <script src="https://unpkg.com/@zxing/library@latest"></script>
+  <script>
+    window.visualViewport && window.visualViewport.addEventListener('resize', () => {
+      if (window.visualViewport.scale !== 1) {
+        document.body.style.transform = `scale(${1 / window.visualViewport.scale})`;
+        document.body.style.transformOrigin = 'top left';
+      } else {
+        document.body.style.transform = '';
+      }
+    });
+  </script>
   <style>
     body {
       font-family: sans-serif;
@@ -63,8 +65,8 @@
     }
     button.full-width {
       width: 95%;
-      font-size: 1.8rem;
-      height: 3em;
+      font-size: 3.6rem;
+      height: 3.6em;
       margin: 20px auto;
       padding: 10px;
       background-color: #4CAF50;
@@ -103,7 +105,7 @@
   <label for="note">📝 Napomena:</label>
   <textarea id="note" rows="4"></textarea>
 
-  <button class="full-width" onclick="posalji()" style="font-size: 3.6rem; height: 3.6em; background-color: #4CAF50; color: white; border: none;"><span style='color: #FFD700;'>✔️</span> Evidentiraj</button>
+  <button class="full-width" onclick="posalji()"><span style='color: #FFD700;'>✔️</span> Evidentiraj</button>
 
   <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
@@ -173,14 +175,51 @@
     function posalji() {
       const barcode = document.getElementById('barcode').value;
       const note = document.getElementById('note').value;
+      const podatak = { barcode, note, timestamp: new Date().toISOString() };
+
       if (!barcode) return alert("Nema barkoda!");
+
+      if (!navigator.onLine) {
+        let spremnik = JSON.parse(localStorage.getItem("buffer") || "[]");
+        spremnik.push(podatak);
+        localStorage.setItem("buffer", JSON.stringify(spremnik));
+        alert("Nema veze – podatak spremljen lokalno.");
+        return;
+      }
+
       fetch("http://localhost:5000/api/unesi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ barcode, note })
+        body: JSON.stringify(podatak)
       })
-      .then(res => res.ok ? alert("Poslano!") : alert("Greška kod slanja"))
-      .catch(() => alert("Nema veze sa serverom."));
+      .then(res => {
+        if (res.ok) {
+          alert("Evidentirano!");
+          posaljiBufferirane();
+        } else {
+          alert("Greška – nije poslano.");
+        }
+      })
+      .catch(() => {
+        alert("Greška veze – pokušaj kasnije.");
+      });
+    }
+
+    function posaljiBufferirane() {
+      if (!navigator.onLine) return;
+
+      let spremnik = JSON.parse(localStorage.getItem("buffer") || "[]");
+      if (spremnik.length === 0) return;
+
+      spremnik.forEach(podatak => {
+        fetch("http://localhost:5000/api/unesi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(podatak)
+        });
+      });
+
+      localStorage.removeItem("buffer");
     }
   </script>
 </body>

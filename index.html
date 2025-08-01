@@ -2,7 +2,7 @@
 <html lang="hr">
 <head>
   <meta charset="UTF-8">
-  <title>Inventura V0.1 - JPAK IIK</title>
+  <title>Barkod skener + napomena</title>
   <script src="https://unpkg.com/@zxing/library@latest"></script>
   <style>
     body {
@@ -55,8 +55,8 @@
     }
     button.full-width {
       width: 95%;
-      font-size: 3.6rem;
-      height: 3.6em;
+      font-size: 1.8rem;
+      height: 3em;
       margin: 20px auto;
       padding: 10px;
       background-color: #4CAF50;
@@ -77,11 +77,8 @@
   </style>
 </head>
 <body>
-  <img src="/static/HKZP_logo.jpg" alt="HKZP logo" style="width: 100%; height: auto; margin-bottom: 20px;">
-  <h2 style="font-size: 3.6rem; display: flex; align-items: center; justify-content: center;">
-    Inventura V0.1 &nbsp;&nbsp;&nbsp; JPAK IIK
-  </h2>
-
+  <img src="HKZP_logo.jpg" alt="HKZP logo" style="width: 100%; height: auto; margin-bottom: 20px;">
+  <h2 style="font-size: 3.6rem; display: flex; align-items: center; justify-content: center;">Inventura V0.1     JPAK IIK</h2>
   <div class="video-container">
     <video id="video" autoplay muted playsinline></video>
     <div class="camera-controls">
@@ -98,9 +95,7 @@
   <label for="note">📝 Napomena:</label>
   <textarea id="note" rows="4"></textarea>
 
-  <button class="full-width" onclick="posalji()">
-    <span style='color: #FFD700;'>✔️</span> Evidentiraj
-  </button>
+  <button class="full-width" onclick="posalji()" style="font-size: 3.6rem; height: 3.6em; background-color: #4CAF50; color: white; border: none;"><span style='color: #FFD700;'>✔️</span> Evidentiraj</button>
 
   <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
@@ -173,7 +168,7 @@
       const note = document.getElementById('note').value;
       if (!barcode) return alert("Nema barkoda!");
 
-      fetch("/api/unesi", {
+      fetch("https://192.168.1.205:8443/api/unesi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ barcode, note })
@@ -187,9 +182,8 @@
           localStorage.setItem("offlineBuffer", JSON.stringify(buffer));
         }
       })
-      .catch((e) => {
+      .catch(() => {
         alert("Nema veze sa serverom, sprema se lokalno.");
-        console.error("Greška:", e);
         buffer.push({ barcode, note });
         localStorage.setItem("offlineBuffer", JSON.stringify(buffer));
       });
@@ -200,7 +194,7 @@
       if (buffer.length > 0) {
         const toKeep = [];
         buffer.forEach((podatak) => {
-          fetch("/api/unesi", {
+          fetch("https://192.168.1.205:8443/api/unesi", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(podatak)

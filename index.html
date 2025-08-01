@@ -2,213 +2,37 @@
 <html lang="hr">
 <head>
   <meta charset="UTF-8">
-  <title>Barkod skener + napomena</title>
-  <script src="https://unpkg.com/@zxing/library@latest"></script>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 20px;
-    }
-    .video-container {
-      display: flex;
-      flex-wrap: nowrap;
-      align-items: flex-start;
-    }
-    video {
-      width: 50%;
-      max-width: 100%;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-    }
-    .camera-controls {
-      width: 50%;
-      margin-left: 1%;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: flex-start;
-    }
-    .camera-controls label,
-    label[for="barcode"],
-    label[for="note"] {
-      width: 100%;
-      margin-bottom: 10px;
-      font-size: 1.8rem;
-    }
-    .camera-controls select,
-    .camera-controls button {
-      width: 100%;
-      margin-bottom: 10px;
-      height: 3em;
-      font-size: 1.8rem;
-    }
-    input[type="text"], textarea {
-      width: 95%;
-      font-size: 2rem;
-      font-weight: bold;
-      padding: 10px;
-      display: block;
-      margin: 20px auto 0 auto;
-    }
-    #note {
-      margin-top: 10px;
-    }
-    button.full-width {
-      width: 95%;
-      font-size: 1.8rem;
-      height: 3em;
-      margin: 20px auto;
-      padding: 10px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      display: block;
-    }
-    @media (max-width: 768px) {
-      .video-container {
-        flex-direction: column;
-      }
-      video, .camera-controls {
-        width: 100%;
-        margin-left: 0;
-      }
-    }
-  </style>
+  <title>Test POST</title>
 </head>
 <body>
-  <img src="HKZP_logo.jpg" alt="HKZP logo" style="width: 100%; height: auto; margin-bottom: 20px;">
-  <h2 style="font-size: 3.6rem; display: flex; align-items: center; justify-content: center;">Inventura V0.1     JPAK IIK</h2>
-  <div class="video-container">
-    <video id="video" autoplay muted playsinline></video>
-    <div class="camera-controls">
-      <label for="cameraSelect">🎥 Odaberi kameru:</label>
-      <select id="cameraSelect"></select>
-      <button onclick="switchCamera()">🔄 Promijeni kameru</button>
-      <button onclick="novoOcitanje()">🔁 Novo očitanje</button>
-    </div>
-  </div>
-
-  <label for="barcode">📦 Barkod ili ručni unos:</label>
-  <input type="text" id="barcode">
-
-  <label for="note">📝 Napomena:</label>
-  <textarea id="note" rows="4"></textarea>
-
-  <button class="full-width" onclick="posalji()" style="font-size: 3.6rem; height: 3.6em; background-color: #4CAF50; color: white; border: none;"><span style='color: #FFD700;'>✔️</span> Evidentiraj</button>
-
-  <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+  <h1>Test POST prema serveru</h1>
+  <button onclick="posalji()">📤 Pošalji test podatke</button>
+  <p id="rezultat"></p>
 
   <script>
-    let codeReader = new ZXing.BrowserBarcodeReader();
-    let currentDeviceId = null;
-    let buffer = JSON.parse(localStorage.getItem("offlineBuffer") || "[]");
-
-    const videoElement = document.getElementById('video');
-    const cameraSelect = document.getElementById('cameraSelect');
-
-    codeReader.getVideoInputDevices().then((devices) => {
-      let defaultDevice = null;
-
-      devices.forEach((device, index) => {
-        const option = document.createElement('option');
-        option.value = device.deviceId;
-        option.text = device.label || `Kamera ${index + 1}`;
-        cameraSelect.appendChild(option);
-
-        const label = (device.label || '').toLowerCase();
-        if (!defaultDevice && label.includes('back')) {
-          defaultDevice = device;
-        }
-        if (label.includes('camera2 0') && label.includes('back')) {
-          defaultDevice = device;
-        }
-      });
-
-      if (defaultDevice) {
-        currentDeviceId = defaultDevice.deviceId;
-        cameraSelect.value = currentDeviceId;
-        startScanner(currentDeviceId);
-      } else if (devices.length > 0) {
-        currentDeviceId = devices[0].deviceId;
-        cameraSelect.value = currentDeviceId;
-        startScanner(currentDeviceId);
-      }
-    });
-
-    function startScanner(deviceId) {
-      codeReader.decodeFromVideoDevice(deviceId, videoElement, (result, err) => {
-        if (result) {
-          document.getElementById('barcode').value = result.getText();
-          document.getElementById('beep').play();
-          codeReader.reset();
-        }
-      });
-    }
-
-    function switchCamera() {
-      if (cameraSelect.value) {
-        codeReader.reset();
-        currentDeviceId = cameraSelect.value;
-        startScanner(currentDeviceId);
-      }
-    }
-
-    function novoOcitanje() {
-      document.getElementById('barcode').value = "";
-      document.getElementById('note').value = "";
-      codeReader.reset();
-      if (currentDeviceId) {
-        startScanner(currentDeviceId);
-      }
-    }
-
     function posalji() {
-      const barcode = document.getElementById('barcode').value;
-      const note = document.getElementById('note').value;
-      if (!barcode) return alert("Nema barkoda!");
+      const podatak = {
+        barcode: "TEST12345",
+        note: "Ovo je testni unos"
+      };
 
       fetch("http://192.168.1.205:5000/api/unesi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ barcode, note })
+        body: JSON.stringify(podatak)
       })
       .then(res => {
         if (res.ok) {
-          alert("Poslano!");
+          document.getElementById("rezultat").innerText = "✅ Poslano!";
         } else {
-          alert("Greška kod slanja, sprema se lokalno.");
-          buffer.push({ barcode, note });
-          localStorage.setItem("offlineBuffer", JSON.stringify(buffer));
+          document.getElementById("rezultat").innerText = "❌ Greška u odgovoru servera.";
         }
       })
-      .catch(() => {
-        alert("Nema veze sa serverom, sprema se lokalno.");
-        buffer.push({ barcode, note });
-        localStorage.setItem("offlineBuffer", JSON.stringify(buffer));
+      .catch(err => {
+        document.getElementById("rezultat").innerText = "⚠️ Nema veze sa serverom.";
+        console.error(err);
       });
     }
-
-    window.addEventListener("load", () => {
-      const buffer = JSON.parse(localStorage.getItem("offlineBuffer") || "[]");
-      if (buffer.length > 0) {
-        const toKeep = [];
-        buffer.forEach((podatak) => {
-          fetch("http://192.168.1.205:5000/api/unesi", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(podatak)
-          })
-          .then(res => {
-            if (!res.ok) toKeep.push(podatak);
-          })
-          .catch(() => {
-            toKeep.push(podatak);
-          });
-        });
-        localStorage.setItem("offlineBuffer", JSON.stringify(toKeep));
-      }
-    });
   </script>
 </body>
 </html>

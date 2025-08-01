@@ -28,5 +28,5 @@ def test():
     return jsonify({"status": "OK"})
 
 if __name__ == "__main__":
-    print(f"Server pokrenut na http://0.0.0.0:8080")
+    print(f"Server pokrenut na https://192.168.1.205:8443")
     app.run(host="0.0.0.0", port=8443, ssl_context=("cert.pem", "key.pem"))

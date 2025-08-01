@@ -42,16 +42,7 @@
       height: 3em;
       font-size: 1.8rem;
     }
-    input[type="text"] {
-      width: 95%;
-      font-size: 2rem;
-      font-weight: bold;
-      padding: 10px;
-      display: block;
-      margin: 20px auto 0 auto;
-      height: 4em;
-    }
-    textarea {
+    input[type="text"], textarea {
       width: 95%;
       font-size: 2rem;
       font-weight: bold;
@@ -64,8 +55,8 @@
     }
     button.full-width {
       width: 95%;
-      font-size: 3.6rem;
-      height: 3.6em;
+      font-size: 1.8rem;
+      height: 3em;
       margin: 20px auto;
       padding: 10px;
       background-color: #4CAF50;
@@ -104,7 +95,7 @@
   <label for="note">📝 Napomena:</label>
   <textarea id="note" rows="4"></textarea>
 
-  <button class="full-width" onclick="posalji()"><span style='color: #FFD700;'>✔️</span> Evidentiraj</button>
+  <button class="full-width" onclick="posalji()" style="font-size: 3.6rem; height: 3.6em; background-color: #4CAF50; color: white; border: none;"><span style='color: #FFD700;'>✔️</span> Evidentiraj</button>
 
   <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
@@ -177,25 +168,23 @@
       const note = document.getElementById('note').value;
       if (!barcode) return alert("Nema barkoda!");
 
-      const podatak = { barcode, note };
-
       fetch("http://192.168.1.205:5000/api/unesi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(podatak)
+        body: JSON.stringify({ barcode, note })
       })
       .then(res => {
         if (res.ok) {
           alert("Poslano!");
         } else {
           alert("Greška kod slanja, sprema se lokalno.");
-          buffer.push(podatak);
+          buffer.push({ barcode, note });
           localStorage.setItem("offlineBuffer", JSON.stringify(buffer));
         }
       })
       .catch(() => {
         alert("Nema veze sa serverom, sprema se lokalno.");
-        buffer.push(podatak);
+        buffer.push({ barcode, note });
         localStorage.setItem("offlineBuffer", JSON.stringify(buffer));
       });
     }
@@ -203,20 +192,21 @@
     window.addEventListener("load", () => {
       const buffer = JSON.parse(localStorage.getItem("offlineBuffer") || "[]");
       if (buffer.length > 0) {
-        buffer.forEach((podatak, index) => {
+        const toKeep = [];
+        buffer.forEach((podatak) => {
           fetch("http://192.168.1.205:5000/api/unesi", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(podatak)
           })
           .then(res => {
-            if (res.ok) {
-              buffer.splice(index, 1);
-              localStorage.setItem("offlineBuffer", JSON.stringify(buffer));
-            }
+            if (!res.ok) toKeep.push(podatak);
           })
-          .catch(() => {});
+          .catch(() => {
+            toKeep.push(podatak);
+          });
         });
+        localStorage.setItem("offlineBuffer", JSON.stringify(toKeep));
       }
     });
   </script>

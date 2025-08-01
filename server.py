@@ -1,15 +1,10 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import csv
 from datetime import datetime
-import os
 
-app = Flask(__name__, static_folder='static', template_folder='templates')
+app = Flask(__name__)
 CORS(app)
-
-@app.route("/")
-def home():
-    return render_template("index.html")
 
 @app.route("/api/unesi", methods=["POST"])
 def unesi():
@@ -28,5 +23,5 @@ def test():
     return jsonify({"status": "OK"})
 
 if __name__ == "__main__":
-    print(f"Server pokrenut na https://192.168.1.205:8443")
+    print("API server pokrenut na https://0.0.0.0:8443")
     app.run(host="0.0.0.0", port=8443, ssl_context=("cert.pem", "key.pem"))

@@ -9,6 +9,7 @@ CORS(app)
 @app.route("/api/unesi", methods=["POST"])
 def unesi():
     data = request.json
+    print(f"Primljeni podaci: {data}")  # <-- logiranje u konzoli
     timestamp = datetime.now().isoformat()
     with open("inventura.csv", "a", newline='', encoding='utf-8') as f:
         writer = csv.writer(f)

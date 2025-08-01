@@ -28,10 +28,10 @@ fetch("http://192.168.1.205:5000/api/unesi", {
           document.getElementById("rezultat").innerText = "❌ Greška u odgovoru servera.";
         }
       })
-      .catch(err => {
-        document.getElementById("rezultat").innerText = "⚠️ Nema veze sa serverom.";
-        console.error(err);
-      });
+.catch(err => {
+  console.error("Greška kod fetch-a:", err);
+  alert("Nema veze sa serverom, greška: " + err.message);
+});
     }
   </script>
 </body>

@@ -2,7 +2,7 @@
 <html lang="hr">
 <head>
   <meta charset="UTF-8">
-  <title>Barkod skener + napomena</title>
+  <title>Inventura V0.1 JPAK IIK</title>
   <script src="https://unpkg.com/@zxing/library@latest"></script>
   <style>
     body {
@@ -98,6 +98,7 @@
   <button class="full-width" onclick="posalji()" style="font-size: 3.6rem; height: 3.6em; background-color: #4CAF50; color: white; border: none;"><span style='color: #FFD700;'>✔️</span> Evidentiraj</button>
 
   <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+  <audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
 
   <script>
     let codeReader = new ZXing.BrowserBarcodeReader();
@@ -175,39 +176,47 @@
       })
       .then(res => {
         if (res.ok) {
-          alert("Poslano!");
+          document.getElementById('successSound').play();
+          saljiBuffer();
+          novoOcitanje();
         } else {
           alert("Greška kod slanja, sprema se lokalno.");
           buffer.push({ barcode, note });
           localStorage.setItem("offlineBuffer", JSON.stringify(buffer));
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Greška:", err);
         alert("Nema veze sa serverom, sprema se lokalno.");
         buffer.push({ barcode, note });
         localStorage.setItem("offlineBuffer", JSON.stringify(buffer));
       });
     }
 
-    window.addEventListener("load", () => {
+    function saljiBuffer() {
       const buffer = JSON.parse(localStorage.getItem("offlineBuffer") || "[]");
-      if (buffer.length > 0) {
-        const toKeep = [];
-        buffer.forEach((podatak) => {
-          fetch("https://192.168.1.205:8443/api/unesi", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(podatak)
-          })
-          .then(res => {
-            if (!res.ok) toKeep.push(podatak);
-          })
-          .catch(() => {
-            toKeep.push(podatak);
-          });
+      if (buffer.length === 0) return;
+
+      const toKeep = [];
+      buffer.forEach((podatak) => {
+        fetch("https://192.168.1.205:8443/api/unesi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(podatak)
+        })
+        .then(res => {
+          if (!res.ok) toKeep.push(podatak);
+        })
+        .catch(() => {
+          toKeep.push(podatak);
         });
-        localStorage.setItem("offlineBuffer", JSON.stringify(toKeep));
-      }
+      });
+
+      localStorage.setItem("offlineBuffer", JSON.stringify(toKeep));
+    }
+
+    window.addEventListener("load", () => {
+      saljiBuffer();
     });
   </script>
 </body>

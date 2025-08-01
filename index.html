@@ -16,11 +16,11 @@
         note: "Ovo je testni unos"
       };
 
-      fetch("http://192.168.1.205:5000/api/unesi", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(podatak)
-      })
+fetch("http://192.168.1.205:5000/api/unesi", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ barcode: "TEST123", note: "unos s mobitela" })
+})
       .then(res => {
         if (res.ok) {
           document.getElementById("rezultat").innerText = "✅ Poslano!";
